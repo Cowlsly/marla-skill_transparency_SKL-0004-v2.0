@@ -28,6 +28,10 @@ def _state(value: bool | None, reason: str, metrics: dict[str, Any] | None = Non
     return {"status": status, "reason": reason, "metrics": metrics or {}}
 
 
+def _not_applicable(reason: str, metrics: dict[str, Any] | None = None) -> dict[str, Any]:
+    return {"status": "NOT_APPLICABLE", "reason": reason, "metrics": metrics or {}}
+
+
 def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[str, Any]:
     path = Path(path)
     profile = get_profile(profile_name)
@@ -119,10 +123,13 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
     }
 
     source_has_transparency = bool(getattr(im, "has_transparency_data", False) or "A" in im.getbands() or "transparency" in im.info)
-    report["gates"]["TRANSPARENCY_CAPABILITY"] = _state(
-        source_has_transparency,
-        "Source exposes alpha/transparency representation" if source_has_transparency else "No source alpha/transparency representation detected",
-    )
+    if profile.transparency == TransparencyPolicy.FORBIDDEN:
+        report["gates"]["TRANSPARENCY_CAPABILITY"] = _not_applicable("Target profile forbids transparency; absence of source alpha is acceptable")
+    else:
+        report["gates"]["TRANSPARENCY_CAPABILITY"] = _state(
+            source_has_transparency,
+            "Source exposes alpha/transparency representation" if source_has_transparency else "No source alpha/transparency representation detected",
+        )
 
     meaningful = alpha.min() < 255 and (transparent_ratio + partial_ratio) >= 0.001
     if profile.transparency == TransparencyPolicy.FORBIDDEN:
@@ -145,8 +152,6 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
     topology_ok = not nearly_empty and not noisy_background
     report["gates"]["ALPHA_TOPOLOGY"] = _state(topology_ok, "Alpha topology basic sanity check", {"nearly_empty": nearly_empty, "near_transparent_noise_pattern": noisy_background})
 
-    # The spatial checkerboard detector is deliberately left UNVERIFIED until its direct
-    # positive/negative fixture suite lands. This is safer than pretending a weak heuristic proves it.
     report["gates"]["FAKE_CHECKERBOARD"] = _state(None, "Spatial checkerboard detector not yet promoted to verified v2 gate")
     report["gates"]["EDGE_QUALITY"] = _state(None, "Requires color-managed composite and semantic visual QA")
     report["gates"]["SEMANTIC_TRANSPARENCY"] = _state(None, "Requires semantic visual QA")
@@ -162,7 +167,6 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
 
     report["gates"]["TARGET_CONTRACT"] = _state(target_ok, "Target profile contract", {"width_ok": width_ok, "height_ok": height_ok, "file_size_ok": bytes_ok, "transparency_policy": profile.transparency.value})
 
-    # Round trip through normalized RGBA PNG. This validates the derivative path, not source metadata preservation.
     roundtrip = path.with_suffix(path.suffix + ".qa-roundtrip.png")
     try:
         rgba.save(roundtrip, "PNG")
@@ -173,7 +177,11 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
             roundtrip.unlink()
     report["gates"]["ROUND_TRIP"] = _state(round_ok, "Normalized PNG round-trip alpha preservation")
 
-    hard_fail = any(v["status"] == "FAIL" for k, v in report["gates"].items() if k not in {"EDGE_QUALITY", "SEMANTIC_TRANSPARENCY", "FAKE_CHECKERBOARD"})
+    hard_fail = any(
+        gate["status"] == "FAIL"
+        for name, gate in report["gates"].items()
+        if name not in {"EDGE_QUALITY", "SEMANTIC_TRANSPARENCY", "FAKE_CHECKERBOARD"}
+    )
     report["target_compliant"] = bool(target_ok and not hard_fail)
     report["capability_state"] = "VERIFIED_TARGET_COMPLIANT" if report["target_compliant"] else "FAILED_QA_REPAIRABLE"
     return report
