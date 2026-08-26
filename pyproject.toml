@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marla-transparency-assurance"
+version = "2.0.0a1"
+description = "Target-aware true-alpha asset validation and repair toolkit for Marla-AI Transparency SKL-0004"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+authors = [{name = "Cowlsly"}]
+dependencies = [
+  "Pillow>=11.3,<13",
+  "numpy>=2.0,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.4,<9"]
+
+[project.scripts]
+transparency = "transparency_assurance.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["transparency_assurance*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
