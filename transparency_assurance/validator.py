@@ -10,6 +10,7 @@ from typing import Any
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
+from .checkerboard import detect_baked_checkerboard
 from .profiles import TransparencyPolicy, get_profile
 
 MAX_PIXELS = 50_000_000
@@ -36,7 +37,7 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
     path = Path(path)
     profile = get_profile(profile_name)
     report: dict[str, Any] = {
-        "validator_version": "2.0.0a1",
+        "validator_version": "2.0.0a2",
         "asset_profile": profile_name,
         "profile": asdict(profile),
         "source_path": str(path),
@@ -134,6 +135,11 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
     meaningful = alpha.min() < 255 and (transparent_ratio + partial_ratio) >= 0.001
     if profile.transparency == TransparencyPolicy.FORBIDDEN:
         report["gates"]["MEANINGFUL_ALPHA_USAGE"] = _state(alpha.min() == 255, "Profile forbids transparency")
+    elif profile.transparency == TransparencyPolicy.LAYER_SPECIFIC:
+        report["gates"]["MEANINGFUL_ALPHA_USAGE"] = _not_applicable(
+            "Layer-specific profile permits but does not universally require alpha",
+            {"transparent_ratio": transparent_ratio, "partial_ratio": partial_ratio},
+        )
     else:
         report["gates"]["MEANINGFUL_ALPHA_USAGE"] = _state(meaningful, "Meaningful non-opaque pixels present", {"transparent_ratio": transparent_ratio, "partial_ratio": partial_ratio})
 
@@ -152,7 +158,12 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
     topology_ok = not nearly_empty and not noisy_background
     report["gates"]["ALPHA_TOPOLOGY"] = _state(topology_ok, "Alpha topology basic sanity check", {"nearly_empty": nearly_empty, "near_transparent_noise_pattern": noisy_background})
 
-    report["gates"]["FAKE_CHECKERBOARD"] = _state(None, "Spatial checkerboard detector not yet promoted to verified v2 gate")
+    checker = detect_baked_checkerboard(im)
+    report["gates"]["FAKE_CHECKERBOARD"] = _state(
+        not checker.detected,
+        checker.reason,
+        {"score": checker.score, "tile_size": checker.tile_size, "visible_fraction": checker.visible_fraction},
+    )
     report["gates"]["EDGE_QUALITY"] = _state(None, "Requires color-managed composite and semantic visual QA")
     report["gates"]["SEMANTIC_TRANSPARENCY"] = _state(None, "Requires semantic visual QA")
 
@@ -180,10 +191,15 @@ def inspect_asset(path: str | Path, profile_name: str = "repo-generic") -> dict[
     hard_fail = any(
         gate["status"] == "FAIL"
         for name, gate in report["gates"].items()
-        if name not in {"EDGE_QUALITY", "SEMANTIC_TRANSPARENCY", "FAKE_CHECKERBOARD"}
+        if name not in {"EDGE_QUALITY", "SEMANTIC_TRANSPARENCY"}
     )
     report["target_compliant"] = bool(target_ok and not hard_fail)
-    report["capability_state"] = "VERIFIED_TARGET_COMPLIANT" if report["target_compliant"] else "FAILED_QA_REPAIRABLE"
+    if report["target_compliant"]:
+        report["capability_state"] = "VERIFIED_TARGET_COMPLIANT"
+    elif report["gates"]["FILE_IDENTITY"]["status"] == "FAIL":
+        report["capability_state"] = "FAILED_QA_REGENERATE"
+    else:
+        report["capability_state"] = "FAILED_QA_REPAIRABLE"
     return report
 
 
