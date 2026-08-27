@@ -1,0 +1,9 @@
+{
+  "name": "apple-icon-background",
+  "transparency": "FORBIDDEN",
+  "width": null,
+  "height": null,
+  "max_bytes": null,
+  "border_transparency_required": false,
+  "notes": "Background layer should be full-bleed and opaque under current layered-icon guidance; revalidate before release automation."
+}

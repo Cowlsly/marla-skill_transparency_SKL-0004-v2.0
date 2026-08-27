@@ -1,0 +1,9 @@
+{
+  "name": "google-play-app-icon",
+  "transparency": "ALLOWED",
+  "width": 512,
+  "height": 512,
+  "max_bytes": 1048576,
+  "border_transparency_required": null,
+  "notes": "Store app icon profile. Revalidate vendor requirements before release automation."
+}

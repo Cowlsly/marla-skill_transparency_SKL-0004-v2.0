@@ -1,0 +1,9 @@
+{
+  "name": "apple-icon-foreground",
+  "transparency": "LAYER_SPECIFIC",
+  "width": null,
+  "height": null,
+  "max_bytes": null,
+  "border_transparency_required": null,
+  "notes": "Foreground layer may use opacity; revalidate current Apple platform-specific icon guidance before release automation."
+}

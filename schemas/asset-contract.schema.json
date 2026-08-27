@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cowlsly.org/schemas/transparency-asset-contract.schema.json",
+  "title": "Transparency Assurance Asset Contract",
+  "type": "object",
+  "required": ["name", "transparency_policy"],
+  "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "transparency_policy": {
+      "type": "string",
+      "enum": ["REQUIRED", "ALLOWED", "LAYER_SPECIFIC", "FORBIDDEN"]
+    },
+    "format": {"type": ["string", "null"]},
+    "width": {"type": ["integer", "null"], "minimum": 1},
+    "height": {"type": ["integer", "null"], "minimum": 1},
+    "max_bytes": {"type": ["integer", "null"], "minimum": 1},
+    "border_policy": {"type": ["string", "null"]},
+    "edge_mode": {"type": ["string", "null"]},
+    "metadata_policy": {"type": ["string", "null"]},
+    "notes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

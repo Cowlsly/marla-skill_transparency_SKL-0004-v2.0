@@ -1,0 +1,9 @@
+{
+  "name": "pwa-maskable",
+  "transparency": "FORBIDDEN",
+  "width": null,
+  "height": null,
+  "max_bytes": null,
+  "border_transparency_required": false,
+  "notes": "Maskable icon profile: opaque artwork with safe padding for platform cropping/masking."
+}

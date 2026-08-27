@@ -1,0 +1,13 @@
+{
+  "$schema": "../schemas/asset-contract.schema.json",
+  "name": "repo-generic",
+  "transparency_policy": "REQUIRED",
+  "format": "PNG",
+  "width": null,
+  "height": null,
+  "max_bytes": null,
+  "border_policy": "CONTRACT_DEFINED",
+  "edge_mode": "CONTRACT_DEFINED",
+  "metadata_policy": "STRIP_PUBLIC_DERIVATIVE_BY_DEFAULT",
+  "notes": "Generic repository raster asset. Project-specific dimensions, border contact, shadow and padding rules belong in the asset contract."
+}

@@ -1,0 +1,9 @@
+{
+  "name": "google-play-feature-graphic",
+  "transparency": "FORBIDDEN",
+  "width": 1024,
+  "height": 500,
+  "max_bytes": null,
+  "border_transparency_required": false,
+  "notes": "Feature graphic profile; alpha is forbidden. Revalidate vendor requirements before release automation."
+}
