@@ -1,0 +1,9 @@
+{
+  "name": "android-adaptive-background",
+  "transparency": "FORBIDDEN",
+  "width": null,
+  "height": null,
+  "max_bytes": null,
+  "border_transparency_required": false,
+  "notes": "Adaptive-icon background layer; treat as full supporting artwork rather than generic transparency."
+}
