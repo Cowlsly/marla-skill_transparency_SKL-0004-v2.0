@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cowlsly.org/schemas/transparency/qa-attestation.schema.json",
+  "title": "Marla Transparency Assurance QA Attestation",
+  "type": "object",
+  "required": [
+    "validator_version",
+    "asset_profile",
+    "source_path",
+    "sha256",
+    "file_size_bytes",
+    "gates",
+    "capability_state",
+    "target_compliant"
+  ],
+  "properties": {
+    "validator_version": {"type": "string"},
+    "asset_profile": {"type": "string"},
+    "source_path": {"type": "string"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "file_size_bytes": {"type": "integer", "minimum": 0},
+    "format": {"type": ["string", "null"]},
+    "mode": {"type": ["string", "null"]},
+    "width": {"type": "integer", "minimum": 1},
+    "height": {"type": "integer", "minimum": 1},
+    "frames": {"type": "integer", "minimum": 1},
+    "source_info": {"type": "object"},
+    "alpha": {"type": "object"},
+    "profile": {"type": "object"},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "repair_history": {"type": "array"},
+    "gates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["status", "reason", "metrics"],
+        "properties": {
+          "status": {"enum": ["PASS", "FAIL", "UNVERIFIED", "NOT_APPLICABLE"]},
+          "reason": {"type": "string"},
+          "metrics": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "capability_state": {
+      "enum": [
+        "VERIFIED_NATIVE_ALPHA",
+        "VERIFIED_REPAIRED_ALPHA",
+        "VERIFIED_TARGET_COMPLIANT",
+        "NATIVE_ALPHA_REQUESTED_FILE_NOT_ACCESSIBLE",
+        "VISUAL_ONLY_NOT_FILE_VERIFIED",
+        "FAILED_QA_REPAIRABLE",
+        "FAILED_QA_REGENERATE",
+        "TARGET_FORBIDS_TRANSPARENCY"
+      ]
+    },
+    "target_compliant": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}
